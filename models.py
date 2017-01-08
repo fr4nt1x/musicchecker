@@ -1,28 +1,31 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Float, Date, BigInteger
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship,backref
 
 Base = declarative_base()
 
 
-class Title(Base):
-    __tablename__ = 'title'
+class Folder(Base):
+    __tablename__ = 'folder'
     id = Column(Integer, primary_key=True)
     name = Column(String(300),index=True)
-    id3tag = relationship("ID3", uselist=False, backref="title")
-    directoryFromRoot = Column(String(300),index=True)
-    fileSize = Column(BigInteger)
-    dateLastChanged = Column(Date)
+    folders = relationship("Folder" ,backref=backref('parent',remote_side=[id]))
+    parent_id = Column(Integer, ForeignKey('folder.id'))
+    files = relationship("File" ,backref='parent')
+    pathToFolder = Column(String(300),index=True)
     #root is specified by the user
     
-class ID3(Base):
-    __tablename__ = 'id3'
+class File(Base):
+    __tablename__ = 'file'
     # Here we define columns for the table meal
     # Notice that each column is also a normal Python instance attribute.
     id = Column(Integer, primary_key=True)
     name = Column(String(250))
+    title = Column(String(250))
     artist = Column(String(300))
     trackNumber = Column(Integer)
-    title_id = Column(Integer, ForeignKey('title.id'))
+    dateLastChanged = Column(Date)
+    
+    parent_id = Column(Integer, ForeignKey('folder.id'))
 
 
