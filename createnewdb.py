@@ -1,10 +1,11 @@
 from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import MP3
 from models import File, Folder
 from init import session
 import os
 from datetime import date
 
-root = os.path.join('F:',os.sep,r'Musik')
+root = os.path.join('G:',os.sep,r'Musik')
 folder = session.query(Folder).filter_by(pathToFolder = "Root").first()
 
 if folder ==None:
@@ -30,11 +31,18 @@ for r,dirs,files in os.walk(root):
                 id3 = EasyID3(os.path.join(r,f))
             except:
                 id3 = -1
+            try:
+                mptest = MP3(os.path.join(r,f))
+            except:
+                mptest = -1
                 
-
+            bitrate = 0
             tracknumber = -1
             artist = -1
             titlestring = -1
+            if mptest != -1:
+                bitrate = mptest.info.bitrate
+                
             if id3 != -1:
                 if 'tracknumber' in id3:
                     try:
@@ -50,7 +58,7 @@ for r,dirs,files in os.walk(root):
                     titlestring = id3['title'][0]
                     
                 
-            file = File(name = f, parent = parentFolder, dateLastChanged =date.today() , artist=artist , trackNumber = tracknumber , title = titlestring )
+            file = File(name = f, parent = parentFolder, dateLastChanged =date.today() , bitrate= bitrate,artist=artist , trackNumber = tracknumber , title = titlestring )
             session.add(file)
 
 session.commit()         

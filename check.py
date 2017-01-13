@@ -1,9 +1,10 @@
 from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import MP3
 from models import File, Folder
 from init import session
 import os
 from datetime import date
-root = os.path.join('F:',os.sep,r'Musik')
+root = os.path.join('G:',os.sep,r'Musik')
 
 resultfiles = []
 resultfolders = []
@@ -26,12 +27,20 @@ def checkFiles(files, parentFolder,rootPath):
                 id3 = EasyID3(os.path.join(rootPath,f))
             except:
                 id3 = -1
+            try:
+                mptest = MP3(os.path.join(r,f))
+            except:
+                mptest = -1
                 
+            bitrate = 0    
 
             tracknumber = -1
             artist = -1
             titlestring = -1
-            
+
+            if mptest != -1:
+                bitrate = mptest.info.bitrate
+                
             if id3 != -1:
                 if 'tracknumber' in id3:
                     try:
@@ -51,16 +60,17 @@ def checkFiles(files, parentFolder,rootPath):
 
             if f in dataBaseFilesNames:
                 dataBaseFile = dataBaseFiles[dataBaseFilesNames.index(f)]
-
-            if not dataBaseFile.title == titlestring:
-                resultfiles.append(f + " titlestring missing.")
+            if not dataBaseFile.title == str(titlestring):
+                resultfiles.append(rootPath + os.sep + f + " titlestring has changed.")
                     
-            elif not dataBaseFile.artist == artist:
-                resultfiles.append(f + " artist missing.")
+            elif not dataBaseFile.artist == str(artist):
+                resultfiles.append(rootPath + os.sep + f + " artist has changed.")
                     
             elif not dataBaseFile.trackNumber == tracknumber:
-                resultfiles.append(f+ " tracknumber missing")
-           
+                resultfiles.append(rootPath + os.sep + f + " tracknumber has changed.")
+
+            elif not dataBaseFile.bitrate == bitrate:
+                resultfiles.append(rootPath + os.sep + f + " bitrate has changed.")
                 
             allFilesFound.append(f)
             
@@ -85,5 +95,5 @@ for r,dirs,files in os.walk(root):
         checkFiles(files,parentFolder, r)
                     
             
-print("Files with changed id3 tags: " + ",".join(resultfiles))
+print("Files with changed id3 tags: " + "\n".join(resultfiles))
 print("Directories not found: " + ",".join(resultfolders))

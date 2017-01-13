@@ -25,6 +25,7 @@ class File(Base):
     artist = Column(String(300))
     trackNumber = Column(Integer)
     dateLastChanged = Column(Date)
+    bitrate = Column(Integer)
     
     parent_id = Column(Integer, ForeignKey('folder.id'))
 
