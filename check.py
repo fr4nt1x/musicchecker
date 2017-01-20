@@ -4,8 +4,9 @@ from models import File, Folder
 from init import session
 import os
 from datetime import date
-root = os.path.join('G:',os.sep,r'Musik')
-
+root = os.path.join('I:',os.sep,r'Musik')
+ShowBitrate = False
+BitrateLowerBound = 190000
 resultfiles = []
 resultfolders = []
 
@@ -13,8 +14,8 @@ def checkDirs(dirs,parentFolder):
     names =[x.name for x in parentFolder.folders]        
     allDirsFound = []       
     if not set(names) == set(dirs):
-        print("directories: ", set(names) - set(allDirsFound) ," missing in: " + parentFolder.name)
-        print("directories: ",  set(allDirsFound) - set(names) ," extra in: " + parentFolder.name)
+        print("directories: ", set(names) - set(dirs) ," missing in: " + parentFolder.name)
+        print("directories: ",  set(dirs) - set(names) ," extra in: " + parentFolder.name)
         
 def checkFiles(files, parentFolder,rootPath):
     dataBaseFiles = parentFolder.files
@@ -40,7 +41,6 @@ def checkFiles(files, parentFolder,rootPath):
 
             if mptest != -1:
                 bitrate = mptest.info.bitrate
-                
             if id3 != -1:
                 if 'tracknumber' in id3:
                     try:
@@ -60,6 +60,7 @@ def checkFiles(files, parentFolder,rootPath):
 
             if f in dataBaseFilesNames:
                 dataBaseFile = dataBaseFiles[dataBaseFilesNames.index(f)]
+                
             if not dataBaseFile.title == str(titlestring):
                 resultfiles.append(rootPath + os.sep + f + " titlestring has changed.")
                     
@@ -72,6 +73,11 @@ def checkFiles(files, parentFolder,rootPath):
             elif not dataBaseFile.bitrate == bitrate:
                 resultfiles.append(rootPath + os.sep + f + " bitrate has changed.")
                 
+            if titlestring == -1 or artist== -1 or tracknumber == -1 :
+                print(rootPath + os.sep + f + " has missing id3 entries.")
+            
+            if ShowBitrate and bitrate <= BitrateLowerBound:
+                print(rootPath + os.sep+ f+ " has a bitrate of: "+ str(bitrate)+"." )
             allFilesFound.append(f)
             
     if not set(dataBaseFilesNames) == set(allFilesFound):
@@ -96,4 +102,3 @@ for r,dirs,files in os.walk(root):
                     
             
 print("Files with changed id3 tags: " + "\n".join(resultfiles))
-print("Directories not found: " + ",".join(resultfolders))
